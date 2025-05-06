@@ -1,0 +1,18 @@
+services:
+  app-ctl:
+    build: ./app-ctl
+    ports:
+      - "50001:80"
+    volumes:
+      - ./app-ctl:/go/src
+    tty: true
+  redis:
+    image: redis:8.0
+    ports:
+      - "16379:6379"
+    volumes:
+      - redis-data:/data
+    command: [ "redis-server", "--appendonly", "yes" ]
+
+volumes:
+  redis-data:
