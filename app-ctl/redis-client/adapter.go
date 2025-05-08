@@ -35,3 +35,11 @@ func (r *RedisAdapter) Get(key string) (string, error) {
 func (r *RedisAdapter) Close() error {
 	return r.client.Close()
 }
+
+func (r *RedisAdapter) IsExists(key string) (bool, error) {
+	exists, err := r.client.Exists(key).Result()
+	if err != nil {
+		return false, err
+	}
+	return exists > 0, nil
+}

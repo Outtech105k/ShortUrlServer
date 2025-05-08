@@ -10,11 +10,26 @@ import (
 	"syscall"
 	"time"
 
+	redisclient "github.com/Outtech105k/ShortUrlServer/app-ctl/redis-client"
 	"github.com/Outtech105k/ShortUrlServer/app-ctl/routes"
+	"github.com/Outtech105k/ShortUrlServer/app-ctl/utils"
 )
 
 func run() error {
-	router := routes.SetupRouter()
+	// Connct Redis
+	redisAdapter, err := redisclient.NewRedisAdapter()
+	if err != nil {
+		return fmt.Errorf("connectRedis: %w", err)
+	}
+	defer redisAdapter.Close()
+
+	// Setup AppContext
+	appCtx := &utils.AppCopntext{
+		Redis: *redisAdapter,
+	}
+
+	// Setup Gin Router
+	router := routes.SetupRouter(appCtx)
 
 	srv := &http.Server{
 		Addr:    ":8080",

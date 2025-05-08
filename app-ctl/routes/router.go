@@ -4,10 +4,11 @@ import (
 	"net/http"
 
 	"github.com/Outtech105k/ShortUrlServer/app-ctl/controllers"
+	"github.com/Outtech105k/ShortUrlServer/app-ctl/utils"
 	"github.com/gin-gonic/gin"
 )
 
-func SetupRouter() *gin.Engine {
+func SetupRouter(appCtx *utils.AppCopntext) *gin.Engine {
 	r := gin.Default()
 	api := r.Group("/api/shorturl")
 	{
@@ -15,7 +16,7 @@ func SetupRouter() *gin.Engine {
 			ctx.String(http.StatusOK, "Hello. This is short URL service!")
 		})
 
-		api.POST("/set", controllers.SetUrl)
+		api.POST("/set", controllers.SetUrlHandler(appCtx))
 	}
 
 	return r
