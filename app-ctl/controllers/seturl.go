@@ -24,34 +24,50 @@ func SetUrlHandler(appCtx *utils.AppContext) gin.HandlerFunc {
 			return
 		}
 
-		// カスタムIDが指定されていない場合、4文字カスタムIDの生成（最大10回試行）
 		var customId string
-		customeIdIsExists := false
-		for i := 0; i < 10; i++ {
-			var err error
-			customId, err = utils.MakeRandomStr(4)
-			if err != nil {
+		if r.CustomID == nil {
+			// カスタムIDが指定されていない場合、4文字カスタムIDの生成（最大10回試行）
+			customIdIsExists := false
+			for i := 0; i < 10; i++ {
+				var err error
+				customId, err = utils.MakeRandomStr(4)
+				if err != nil {
+					c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error."})
+					log.Printf("MakeRandomStr error: %v", err)
+					return
+				}
+
+				// 生成されたカスタムIDがRedisに存在するか確認
+				customIdIsExists, err = appCtx.Redis.IsExists(customId)
+				if err != nil {
+					c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error."})
+					log.Printf("Redis exists error: %v", err)
+					return
+				}
+
+				if !customIdIsExists {
+					break
+				}
+			}
+			if customIdIsExists {
 				c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error."})
-				log.Printf("MakeRandomStr error: %v", err)
+				log.Printf("Custom ID generation failed after 10 attempts.")
 				return
 			}
-
-			// 生成されたカスタムIDがRedisに存在するか確認
-			customeIdIsExists, err = appCtx.Redis.IsExists(customId)
+		} else {
+			customId = *r.CustomID
+			// カスタムIDが指定されている場合、Redisに存在するか確認
+			customIdIsExists, err := appCtx.Redis.IsExists(customId)
 			if err != nil {
 				c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error."})
 				log.Printf("Redis exists error: %v", err)
 				return
 			}
 
-			if !customeIdIsExists {
-				break
+			if customIdIsExists {
+				c.JSON(http.StatusConflict, gin.H{"error": "custom_id already used."})
+				return
 			}
-		}
-		if customeIdIsExists {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error."})
-			log.Printf("Custom ID generation failed after 10 attempts.")
-			return
 		}
 
 		// RedisにURLを保存
