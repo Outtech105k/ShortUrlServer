@@ -8,7 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func SetupRouter(appCtx *utils.AppCopntext) *gin.Engine {
+func SetupRouter(appCtx *utils.AppContext) *gin.Engine {
 	r := gin.Default()
 	api := r.Group("/api/shorturl")
 	{

@@ -5,6 +5,14 @@ services:
       - "50001:8080"
     volumes:
       - ./app-ctl:/go/src
+
+  app-redirect:
+    build: ./app-redirect
+    ports:
+      - "50002:8080"
+    volumes:
+      - ./app-redirect:/go/src
+
   redis:
     image: redis:8.0
     ports:

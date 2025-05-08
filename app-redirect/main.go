@@ -10,9 +10,9 @@ import (
 	"syscall"
 	"time"
 
-	redisclient "github.com/Outtech105k/ShortUrlServer/app-ctl/redis-client"
-	"github.com/Outtech105k/ShortUrlServer/app-ctl/routes"
-	"github.com/Outtech105k/ShortUrlServer/app-ctl/utils"
+	redisclient "github.com/Outtech105k/ShortUrlServer/app-redirect/redis-client"
+	"github.com/Outtech105k/ShortUrlServer/app-redirect/routes"
+	"github.com/Outtech105k/ShortUrlServer/app-redirect/utils"
 )
 
 func run() error {

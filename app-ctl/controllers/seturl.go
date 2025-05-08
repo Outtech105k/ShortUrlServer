@@ -11,7 +11,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func SetUrlHandler(appCtx *utils.AppCopntext) gin.HandlerFunc {
+func SetUrlHandler(appCtx *utils.AppContext) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var r models.SetUrlRequest
 
