@@ -24,10 +24,6 @@ func NewRedisAdapter() (*RedisAdapter, error) {
 	return &RedisAdapter{client: client}, nil
 }
 
-func (r *RedisAdapter) Get(key string) (string, error) {
-	return r.client.Get(key).Result()
-}
-
 func (r *RedisAdapter) Close() error {
 	return r.client.Close()
 }
