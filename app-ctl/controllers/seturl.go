@@ -5,6 +5,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/Outtech105k/ShortUrlServer/app-ctl/models"
 	"github.com/Outtech105k/ShortUrlServer/app-ctl/utils"
@@ -98,8 +99,14 @@ func SetUrlHandler(appCtx *utils.AppContext) gin.HandlerFunc {
 			}
 		}
 
+		// URLの有効期限を設定
+		var expireIn *time.Duration = nil
+		if r.ExpireIn != nil {
+			expireIn = &r.ExpireIn.Duration
+		}
+
 		// RedisにURLを保存
-		if err := appCtx.Redis.SetURLRecord(customId, r.BaseURL, nil); err != nil {
+		if err := appCtx.Redis.SetURLRecord(customId, r.BaseURL, expireIn); err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error."})
 			log.Printf("Redis set URL record error: %v", err)
 			return
