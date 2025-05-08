@@ -1,0 +1,25 @@
+services:
+  app-ctl:
+    build: ./app-ctl
+    ports:
+      - "50001:8080"
+    volumes:
+      - ./app-ctl:/go/src
+
+  app-redirect:
+    build: ./app-redirect
+    ports:
+      - "50002:8080"
+    volumes:
+      - ./app-redirect:/go/src
+
+  redis:
+    image: redis:8.0
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    command: [ "redis-server", "--appendonly", "yes" ]
+
+volumes:
+  redis-data:
