@@ -11,8 +11,10 @@ import (
 func SetupRouter(appCtx *utils.AppContext) *gin.Engine {
 	r := gin.Default()
 	r.GET("/", func(ctx *gin.Context) {
-		ctx.String(http.StatusOK, "Hello, Redirect.")
+		ctx.Redirect(http.StatusFound, "https://outtech105.com/service/shorturl")
 	})
+
+	r.LoadHTMLGlob("templates/*")
 
 	r.GET("/:shortUrl", controllers.GetUrlHandler(appCtx))
 
