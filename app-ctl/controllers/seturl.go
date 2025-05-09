@@ -30,7 +30,8 @@ func SetUrlHandler(appCtx *utils.AppContext) gin.HandlerFunc {
 			return
 		}
 
-		// UseUppercase, UseLowercase, UseNumbers, IDLengthのデフォルト値を設定
+		// UseUppercase, UseLowercase, UseNumbers, IDLength, SandCushionのデフォルト値を設定
+		// ExpireInはnilの場合、無期限として扱うのでnilを許す
 		if r.UseUppercase == nil {
 			r.UseUppercase = utils.BoolPtr(false)
 		}
@@ -42,6 +43,9 @@ func SetUrlHandler(appCtx *utils.AppContext) gin.HandlerFunc {
 		}
 		if r.IDLength == nil {
 			r.IDLength = utils.Uint32Ptr(6)
+		}
+		if r.SandCushion == nil {
+			r.SandCushion = utils.BoolPtr(false)
 		}
 
 		var customId string
@@ -106,7 +110,7 @@ func SetUrlHandler(appCtx *utils.AppContext) gin.HandlerFunc {
 		}
 
 		// RedisにURLを保存
-		if err := appCtx.Redis.SetURLRecord(customId, r.BaseURL, expireIn); err != nil {
+		if err := appCtx.Redis.SetURLRecord(customId, r.BaseURL, *r.SandCushion, expireIn); err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error."})
 			log.Printf("Redis set URL record error: %v", err)
 			return

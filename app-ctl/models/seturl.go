@@ -8,4 +8,5 @@ type SetUrlRequest struct {
 	UseNumbers   *bool     `json:"use_numbers"`
 	IDLength     *uint32   `json:"id_length"`
 	ExpireIn     *Duration `json:"expire_in"`
+	SandCushion  *bool     `json:"sand_cushion"`
 }
