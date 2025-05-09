@@ -31,6 +31,24 @@ func GetUrlHandler(appCtx *utils.AppContext) gin.HandlerFunc {
 			return
 		}
 
+		// クッションページが必要か確認
+		isCushionRequired, err := appCtx.Redis.GetIsNeedCusionPage(shortUrl)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": "Internal server error",
+			})
+			log.Printf("Failed to check if cushion page is needed: %v", err)
+			return
+		}
+
+		if isCushionRequired {
+			// クッションページを表示
+			c.HTML(http.StatusOK, "cushion.html", gin.H{
+				"URL": baseUrl,
+			})
+		}
+
+		// クッションページなしでリダイレクト
 		c.Redirect(http.StatusFound, baseUrl)
 	}
 }
