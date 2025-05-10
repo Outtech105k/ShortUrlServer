@@ -152,7 +152,12 @@
                         document.getElementById("jump_link").href = data.short_url;
                         document.getElementById("result").style.display = "block";
                     } else {
-                        alert("エラー: " + data.error);
+                        // 特定のエラーメッセージに対するカスタム処理
+                        if (data.error === "custom_id already used.") {
+                            alert("エラー: そのカスタムIDはすでに作成されています。ほかのIDを指定してください。");
+                        } else {
+                            alert("エラー: " + data.error);
+                        }
                     }
                 } catch (err) {
                     alert("リクエスト失敗: " + err.message);
