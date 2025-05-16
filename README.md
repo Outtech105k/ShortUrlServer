@@ -96,7 +96,7 @@ docker compose -f compose.dev.yml up -d --build
 
 Airを利用してホットリロード開発ができます。
 
-1. デプロイ環境では
+2. デプロイ環境では
 
 ```bash
 docker compose -f compose.prod.yml up -d --build
