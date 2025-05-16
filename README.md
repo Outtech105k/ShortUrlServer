@@ -20,7 +20,6 @@ GUIアプリと機能は同じです。
 
 `"base_url"`のみの指定の場合、ランダムIDがセットされます。
 
-
 | key | 説明 | 必須/デフォルト値 | 競合する値 |
 | :-- | :-- | :-- | :-- |
 | `base_url` | リダイレクト先URL | 必須 | |
@@ -28,11 +27,12 @@ GUIアプリと機能は同じです。
 | `use_lowercase`| ランダムIDに英小文字を含めるか | `true` | `custom_id` |
 | `use_numbers`| ランダムIDに数字を含めるか | `true` | `custom_id` |
 | `id_length`| ランダムIDの文字数 | `6` | `custom_id` |
-| `custom_id`| 設定するカスタムID | ランダムIDを採用 | `use_uppercase`, `use_lowercase`, `use_numbers`, `id_length` |
+| `custom_id`| 設定するカスタムID<br>(最大文字数100文字) | ランダムIDを採用 | `use_uppercase`, `use_lowercase`, `use_numbers`, `id_length` |
 | `expire_in`| リンクの有効期間 | 無期限 | |
 | `sand_cushion`| クッションページを使用するか | `false` | |
 
 1. ランダムIDでURL生成する例
+
 ```JSON
 {
     "base_url": "https://example.com",
@@ -44,7 +44,9 @@ GUIアプリと機能は同じです。
     "sand_cushion": true
 }
 ```
+
 2. カスタムIDでURL生成する例
+
 ```JSON
 {
     "base_url": "https://example.com",
@@ -55,7 +57,9 @@ GUIアプリと機能は同じです。
 ```
 
 ### Responces
+
 1. OK Responce
+
 ```JSON
 {
     "base_url": "https://example.com",
@@ -67,6 +71,7 @@ GUIアプリと機能は同じです。
 
 2. Conflict Responce
 カスタムIDリクエスト時、IDが既存の時に返されます。
+
 ```JSON
 {
     "error": "custom_id already used."
@@ -74,11 +79,30 @@ GUIアプリと機能は同じです。
 ```
 
 3. Other error Responces
+
 ```JSON
 {
     "error": "Error message"
 }
 ```
+
+## Usage
+
+1. 開発環境では
+
+```bash
+docker compose -f compose.dev.yml up -d --build
+```
+
+Airを利用してホットリロード開発ができます。
+
+1. デプロイ環境では
+
+```bash
+docker compose -f compose.prod.yml up -d --build
+```
+
+マルチステージングにより、バイナリにビルドした後に Alpine コンテナで実行されます。
 
 ## Contact
 
