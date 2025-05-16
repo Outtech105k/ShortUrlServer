@@ -32,21 +32,11 @@ func SetUrlHandler(appCtx *utils.AppContext) gin.HandlerFunc {
 
 		// UseUppercase, UseLowercase, UseNumbers, IDLength, SandCushionのデフォルト値を設定
 		// ExpireInはnilの場合、無期限として扱うのでnilを許す
-		if r.UseUppercase == nil {
-			r.UseUppercase = utils.BoolPtr(false)
-		}
-		if r.UseLowercase == nil {
-			r.UseLowercase = utils.BoolPtr(true)
-		}
-		if r.UseNumbers == nil {
-			r.UseNumbers = utils.BoolPtr(true)
-		}
-		if r.IDLength == nil {
-			r.IDLength = utils.Uint32Ptr(6)
-		}
-		if r.SandCushion == nil {
-			r.SandCushion = utils.BoolPtr(false)
-		}
+		nilSetDefault(&r.UseUppercase, false)
+		nilSetDefault(&r.UseLowercase, true)
+		nilSetDefault(&r.UseNumbers, true)
+		nilSetDefault(&r.IDLength, 6)
+		nilSetDefault(&r.SandCushion, false)
 
 		var customId string
 		if r.CustomID == nil {
@@ -109,6 +99,8 @@ func SetUrlHandler(appCtx *utils.AppContext) gin.HandlerFunc {
 			expireIn = &r.ExpireIn.Duration
 		}
 
+		log.Printf("%+v", r)
+
 		// RedisにURLを保存
 		if err := appCtx.Redis.SetURLRecord(customId, r.BaseURL, *r.SandCushion, expireIn); err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error."})
@@ -124,11 +116,15 @@ func SetUrlHandler(appCtx *utils.AppContext) gin.HandlerFunc {
 }
 
 func setUrlHandlerVaridate(r *models.SetUrlRequest) error {
-	if r.CustomID != nil {
-		if r.UseUppercase != nil || r.UseLowercase != nil || r.UseNumbers != nil || r.IDLength != nil {
-			return fmt.Errorf("custom_id is specified, but use_uppercase, use_lowercase, use_numbers, id_length are also specified")
-		}
+	if r.CustomID != nil && (r.UseUppercase != nil || r.UseLowercase != nil || r.UseNumbers != nil || r.IDLength != nil) {
+		return fmt.Errorf("custom_id is specified, but use_uppercase, use_lowercase, use_numbers, id_length are also specified")
 	}
 
 	return nil
+}
+
+func nilSetDefault[T any](v **T, defaultV T) {
+	if *v == nil {
+		*v = &defaultV
+	}
 }

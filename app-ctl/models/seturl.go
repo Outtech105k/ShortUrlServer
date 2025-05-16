@@ -2,7 +2,7 @@ package models
 
 type SetUrlRequest struct {
 	BaseURL      string    `json:"base_url" binding:"required,url"`
-	CustomID     *string   `json:"custom_id"`
+	CustomID     *string   `json:"custom_id" binding:"omitempty,max=100"`
 	UseUppercase *bool     `json:"use_uppercase"`
 	UseLowercase *bool     `json:"use_lowercase"`
 	UseNumbers   *bool     `json:"use_numbers"`
