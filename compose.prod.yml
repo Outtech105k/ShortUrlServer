@@ -1,0 +1,34 @@
+services:
+  app-ctl:
+    build:
+      context: ./app-ctl
+      dockerfile: Dockerfile
+    ports:
+      - "50001:8080"
+    command: ./app
+    depends_on:
+      - redis
+    restart: always
+
+  app-redirect:
+    build:
+      context: ./app-redirect
+      dockerfile: Dockerfile
+    ports:
+      - "50002:8080"
+    command: ./app
+    depends_on:
+      - redis
+    restart: always
+
+  redis:
+    image: redis:8.0
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    command: [ "redis-server", "--appendonly", "yes" ]
+    restart: always
+
+volumes:
+  redis-data:

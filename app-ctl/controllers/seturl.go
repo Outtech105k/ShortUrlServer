@@ -99,8 +99,6 @@ func SetUrlHandler(appCtx *utils.AppContext) gin.HandlerFunc {
 			expireIn = &r.ExpireIn.Duration
 		}
 
-		log.Printf("%+v", r)
-
 		// RedisにURLを保存
 		if err := appCtx.Redis.SetURLRecord(customId, r.BaseURL, *r.SandCushion, expireIn); err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error."})
