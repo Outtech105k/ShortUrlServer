@@ -11,4 +11,5 @@ WORKDIR /app
 COPY --from=builder /app/app .
 COPY --from=builder /app/templates ./templates
 
+ENV GIN_MODE=release
 CMD [ "./app" ]
