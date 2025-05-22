@@ -58,33 +58,65 @@ GUIアプリと機能は同じです。
 
 ### Responces
 
-1. OK Responce
+1. 200 OK Responce
 
 ```JSON
 {
     "base_url": "https://example.com",
-    "custom_id": "example",
-    "expire_in": "10h",
-    "sand_cushion": true
+    "short_url": "https://rk2.uk/example"
 }
 ```
 
-2. Conflict Responce
-カスタムIDリクエスト時、IDが既存の時に返されます。
+2. 400 Bad Request Responce
+    - Varidation Error
+    ```JSON
+    {
+        "type": "varidation_error",
+        "details": [
+            {
+                "field": "base_url",
+                "message": "base_url is required"
+            }
+        ]
+    }
+    ```
+    必要なパラメータがない、もしくは入力制約に違反した場合に返されます。
 
-```JSON
-{
-    "error": "custom_id already used."
-}
-```
+    - Invalid Request
+    ```JSON
+    {
+        "type": "invalid_request",
+        "message": "Empty JSON body"
+    }
+    ```
+    JSON Bodyに対する問題や、入力制約に違反した場合に返されます。
 
-3. Other error Responces
+    - Parameter Conflict 
+    ```JSON
+    {
+        "type": "parameter_conflict",
+        "message": "*** cannot be used together with ***"
+    }
+    ```
+    競合関係にある（同時に設定できない）JSONパラメータを設定した場合に返されます。
 
-```JSON
-{
-    "error": "Error message"
-}
-```
+3. 409 Conflict Responce
+    ```JSON
+    {
+        "type": "conflict",
+        "message": "custom_id is already used."
+    }
+    ```
+    `"custom_id"`を設定した場合、すでにそのカスタムIDが存在していて登録できない場合に返されます。
+
+4. 500 InternalServerError Responce
+    ```JSON
+    {
+        "type": "internal_error",
+        "message": "An unexpected error occurred. Please try again later."
+    }
+    ```
+    サーバー側の問題が発生しています。一時的な問題の可能性もありますが、継続的に発生する場合はお問合せください。
 
 ## Usage
 
@@ -94,7 +126,7 @@ GUIアプリと機能は同じです。
 docker compose -f compose.dev.yml up -d --build
 ```
 
-Airを利用してホットリロード開発ができます。
+[Air](https://github.com/air-verse/air) を利用してホットリロード開発ができます。
 
 2. デプロイ環境では
 
@@ -102,7 +134,7 @@ Airを利用してホットリロード開発ができます。
 docker compose -f compose.prod.yml up -d --build
 ```
 
-マルチステージングにより、バイナリにビルドした後に Alpine コンテナで実行されます。
+マルチステージングにより、バイナリにビルドした後に [Alpineコンテナ](https://hub.docker.com/_/alpine)で実行されます。
 
 ## Contact
 

@@ -1,15 +1,24 @@
 package controllers
 
 import (
+	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log"
 	"net/http"
+	"reflect"
+	"strings"
 	"time"
 
 	"github.com/Outtech105k/ShortUrlServer/app-ctl/models"
 	"github.com/Outtech105k/ShortUrlServer/app-ctl/utils"
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
+)
+
+const (
+	RedirectServerDomain = "rk2.uk"
 )
 
 func SetUrlHandler(appCtx *utils.AppContext) gin.HandlerFunc {
@@ -17,16 +26,59 @@ func SetUrlHandler(appCtx *utils.AppContext) gin.HandlerFunc {
 		var r models.SetUrlRequest
 
 		if err := c.ShouldBindJSON(&r); err != nil {
-			if err == io.EOF {
-				c.JSON(http.StatusBadRequest, gin.H{"error": "request body JSON is empty."})
-			} else {
-				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+
+			// エラー判定 (JSON varidator のみで判断できる内容)
+			var ve validator.ValidationErrors
+			if errors.As(err, &ve) {
+				details := make([]map[string]string, 0)
+				for _, fe := range ve {
+					jsonField := extractJSONFieldName(r, fe.StructField())
+					details = append(details, map[string]string{
+						"field":   jsonField,
+						"message": utils.ValidationErrorMessage(jsonField, fe.Tag()),
+					})
+				}
+
+				apiErr := models.APIError{
+					Type:    "validation_error",
+					Details: details,
+				}
+				c.JSON(http.StatusBadRequest, apiErr)
+				return
 			}
+
+			// JSONが空
+			if errors.Is(err, io.EOF) {
+				apiErr := models.APIError{
+					Type:    "invalid_request",
+					Message: "Empty JSON body",
+				}
+				c.JSON(http.StatusBadRequest, apiErr)
+				return
+			}
+
+			// JSONの構文エラー
+			var syntaxErr *json.SyntaxError
+			if errors.As(err, &syntaxErr) {
+				apiErr := models.APIError{
+					Type:    "invalid_request",
+					Message: "Malformed JSON body",
+				}
+				c.JSON(http.StatusBadRequest, apiErr)
+				return
+			}
+
+			// その他のJSONバインドエラー
+			apiErr := models.APIError{
+				Type:    "invalid_request",
+				Message: "Invalid JSON input",
+			}
+			c.JSON(http.StatusBadRequest, apiErr)
 			return
 		}
 
-		if err := setUrlHandlerVaridate(&r); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		if apiErr := setUrlHandlerCustomValidate(&r); apiErr != nil {
+			c.JSON(http.StatusBadRequest, apiErr)
 			return
 		}
 
@@ -51,20 +103,24 @@ func SetUrlHandler(appCtx *utils.AppContext) gin.HandlerFunc {
 					*r.UseNumbers,
 				)
 				if err != nil {
+					// ランダム生成に必要な文字がない場合
 					if err == utils.ErrNoCharacterSet {
-						c.JSON(http.StatusBadRequest, gin.H{"error": "no character types available."})
+						c.JSON(http.StatusBadRequest, models.APIError{
+							Type:    "invalid_request",
+							Message: "No character types available for URL ID.",
+						})
 						return
 					}
-					c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error."})
-					log.Printf("MakeRandomStr error: %v", err)
+
+					// それ以外のランダム生成エラー
+					returnInternalServerError(c, fmt.Sprintf("MakeRandomStr error: %v", err))
 					return
 				}
 
 				// 生成されたカスタムIDがRedisに存在するか確認
 				customIdIsExists, err = appCtx.Redis.IsExists(customId)
 				if err != nil {
-					c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error."})
-					log.Printf("Redis exists error: %v", err)
+					returnInternalServerError(c, fmt.Sprintf("Redis generated ID exists error: %v", err))
 					return
 				}
 
@@ -73,8 +129,7 @@ func SetUrlHandler(appCtx *utils.AppContext) gin.HandlerFunc {
 				}
 			}
 			if customIdIsExists {
-				c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error."})
-				log.Printf("Custom ID generation failed after 10 attempts.")
+				returnInternalServerError(c, "Custom ID generation failed after 10 attempts.")
 				return
 			}
 		} else {
@@ -82,13 +137,15 @@ func SetUrlHandler(appCtx *utils.AppContext) gin.HandlerFunc {
 			// カスタムIDが指定されている場合、Redisに存在するか確認
 			customIdIsExists, err := appCtx.Redis.IsExists(customId)
 			if err != nil {
-				c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error."})
-				log.Printf("Redis exists error: %v", err)
+				returnInternalServerError(c, fmt.Sprintf("Redis custom ID exists error: %v", err))
 				return
 			}
 
 			if customIdIsExists {
-				c.JSON(http.StatusConflict, gin.H{"error": "custom_id already used."})
+				c.JSON(http.StatusConflict, models.APIError{
+					Type:    "conflict",
+					Message: "custome_id is already used.",
+				})
 				return
 			}
 		}
@@ -101,21 +158,23 @@ func SetUrlHandler(appCtx *utils.AppContext) gin.HandlerFunc {
 
 		// RedisにURLを保存
 		if err := appCtx.Redis.SetURLRecord(customId, r.BaseURL, *r.SandCushion, expireIn); err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error."})
-			log.Printf("Redis set URL record error: %v", err)
+			returnInternalServerError(c, fmt.Sprintf("Redis set URL record error: %v", err))
 			return
 		}
 
-		c.JSON(http.StatusOK, gin.H{
-			"base_url":  r.BaseURL,
-			"short_url": fmt.Sprintf("https://rk2.uk/%s", customId),
+		c.JSON(http.StatusOK, models.APIResponce{
+			BaseURL:  r.BaseURL,
+			ShortURL: fmt.Sprintf("https://%s/%s", RedirectServerDomain, customId),
 		})
 	}
 }
 
-func setUrlHandlerVaridate(r *models.SetUrlRequest) error {
+func setUrlHandlerCustomValidate(r *models.SetUrlRequest) *models.APIError {
 	if r.CustomID != nil && (r.UseUppercase != nil || r.UseLowercase != nil || r.UseNumbers != nil || r.IDLength != nil) {
-		return fmt.Errorf("custom_id is specified, but use_uppercase, use_lowercase, use_numbers, id_length are also specified")
+		return &models.APIError{
+			Type:    "parameter_conflict",
+			Message: "custom_id cannot be used together with use_uppercase, use_lowercase, use_numbers, or id_length",
+		}
 	}
 
 	return nil
@@ -125,4 +184,29 @@ func nilSetDefault[T any](v **T, defaultV T) {
 	if *v == nil {
 		*v = &defaultV
 	}
+}
+
+func returnInternalServerError(c *gin.Context, logMsg string) {
+	c.JSON(http.StatusInternalServerError, models.APIError{
+		Type:    "internal_error",
+		Message: "An unexpected error occurred. Please try again later.",
+	})
+	log.Println(logMsg)
+}
+
+// JSONフィールド名を出力
+func extractJSONFieldName(obj any, fieldName string) string {
+	t := reflect.TypeOf(obj)
+	if t.Kind() == reflect.Ptr {
+		t = t.Elem()
+	}
+
+	if f, ok := t.FieldByName(fieldName); ok {
+		tag := f.Tag.Get("json")
+		if tag != "" && tag != "-" {
+			// json tag may contain ",omitempty", so split
+			return strings.Split(tag, ",")[0]
+		}
+	}
+	return fieldName // fallback
 }
