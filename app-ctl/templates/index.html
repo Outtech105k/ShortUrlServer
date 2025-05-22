@@ -139,7 +139,7 @@
 
                 // REST API POSTリクエストを送信
                 try {
-                    const res = await fetch("/api/shorturl/set", {
+                    const res = await fetch("/set", {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify(body),
