@@ -21,6 +21,7 @@ func GetUrlHandler(appCtx *utils.AppContext) gin.HandlerFunc {
 				c.JSON(http.StatusNotFound, gin.H{
 					"error": "URL not found",
 				})
+
 				return
 			}
 
