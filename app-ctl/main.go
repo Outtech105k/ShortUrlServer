@@ -13,9 +13,16 @@ import (
 	redisclient "github.com/Outtech105k/ShortUrlServer/app-ctl/redis-client"
 	"github.com/Outtech105k/ShortUrlServer/app-ctl/routes"
 	"github.com/Outtech105k/ShortUrlServer/app-ctl/utils"
+	"github.com/caarlos0/env/v11"
 )
 
 func run() error {
+	// Get Environment Variables
+	var cfg utils.Config
+	if err := env.Parse(&cfg); err != nil {
+		return fmt.Errorf("getEnv: %w", err)
+	}
+
 	// Connct Redis
 	redisAdapter, err := redisclient.NewRedisAdapter()
 	if err != nil {
@@ -25,7 +32,8 @@ func run() error {
 
 	// Setup AppContext
 	appCtx := &utils.AppContext{
-		Redis: *redisAdapter,
+		Config: cfg,
+		Redis:  *redisAdapter,
 	}
 
 	// Setup Gin Router

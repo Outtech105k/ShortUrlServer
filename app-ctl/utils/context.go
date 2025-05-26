@@ -5,5 +5,6 @@ import (
 )
 
 type AppContext struct {
-	Redis redisclient.RedisAdapter
+	Config Config
+	Redis  redisclient.RedisAdapter
 }

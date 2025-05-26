@@ -9,7 +9,7 @@
 
 ## REST API Usage
 
-REST APIに対応しています。
+URL生成サービスは、REST APIに対応しています。
 GUIアプリと機能は同じです。
 
 ### Requests
@@ -120,13 +120,19 @@ GUIアプリと機能は同じです。
 
 ## Usage
 
+### Preconfigure
+
+[/endpoints.sample.env](/endpoints.sample.env) を、アプリケーションサーバ・リダイレクトサーバに合わせて設定し、`endpoints.env`にリネームします。
+
+### Startup
+
 1. 開発環境では
 
 ```bash
-docker compose -f compose.dev.yml up -d --build
+docker compose -f compose.dev.yml up --build
 ```
 
-[Air](https://github.com/air-verse/air) を利用してホットリロード開発ができます。
+[Air](https://github.com/air-verse/air) を利用してホットリロード開発ができます。(適宜`-d`オプションを付加してください)
 
 2. デプロイ環境では
 
@@ -139,5 +145,7 @@ docker compose -f compose.prod.yml up -d --build
 ## Contact
 
 Outtech105k
+
+[Email](owner@outtech105.com)
 
 [Twitter(X)](https://x.com/105techno)
