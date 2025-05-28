@@ -17,10 +17,6 @@ import (
 	"github.com/go-playground/validator/v10"
 )
 
-const (
-	RedirectServerDomain = "rk2.uk"
-)
-
 func SetUrlHandler(appCtx *utils.AppContext) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var r models.SetUrlRequest
@@ -164,7 +160,7 @@ func SetUrlHandler(appCtx *utils.AppContext) gin.HandlerFunc {
 
 		c.JSON(http.StatusOK, models.APIResponce{
 			BaseURL:  r.BaseURL,
-			ShortURL: fmt.Sprintf("https://%s/%s", RedirectServerDomain, customId),
+			ShortURL: fmt.Sprintf("%s/%s", appCtx.Config.RedirectServerEndpoint, customId),
 		})
 	}
 }

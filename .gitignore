@@ -1,2 +1,6 @@
 # air用一時ビルドファイル 
 tmp/
+
+# 環境変数
+*.env
+!*.sample.env
