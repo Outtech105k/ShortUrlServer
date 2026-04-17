@@ -122,7 +122,7 @@ GUIアプリと機能は同じです。
 
 ### Preconfigure
 
-[/endpoints.sample.env](/endpoints.sample.env) を、アプリケーションサーバ・リダイレクトサーバに合わせて設定し、`endpoints.env`にリネームします。
+[/config.sample.env](/config.sample.env) 内の`ENDPOINT` を、運用するサーバのエンドポイントに合わせて設定し、`config.env`にリネームします。
 
 ### Startup
 

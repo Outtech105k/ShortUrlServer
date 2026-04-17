@@ -1,33 +1,18 @@
 services:
   app-ctl:
     build:
-      context: ./app-ctl
+      context: ./app
       dockerfile: Dockerfile.dev
     ports:
-      - "50001:8080"
+      - "8080:8080"
     volumes:
-      - ./app-ctl:/go/src
+      - ./app:/go/src
     working_dir: /go/src
     command: air
     depends_on:
       - redis
     env_file:
-      - endpoints.env
-
-  app-redirect:
-    build:
-      context: ./app-redirect
-      dockerfile: Dockerfile.dev
-    ports:
-      - "50002:8080"
-    volumes:
-      - ./app-redirect:/go/src
-    working_dir: /go/src
-    command: air
-    depends_on:
-      - redis
-    env_file:
-      - endpoints.env
+      - config.env
 
   redis:
     image: redis:8.0

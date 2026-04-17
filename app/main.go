@@ -10,9 +10,9 @@ import (
 	"syscall"
 	"time"
 
-	redisclient "github.com/Outtech105k/ShortUrlServer/app-redirect/redis-client"
-	"github.com/Outtech105k/ShortUrlServer/app-redirect/routes"
-	"github.com/Outtech105k/ShortUrlServer/app-redirect/utils"
+	redisclient "github.com/Outtech105k/ShortUrlServer/app/redis-client"
+	"github.com/Outtech105k/ShortUrlServer/app/routes"
+	"github.com/Outtech105k/ShortUrlServer/app/utils"
 	"github.com/caarlos0/env/v11"
 )
 
