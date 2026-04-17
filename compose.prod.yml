@@ -1,29 +1,16 @@
 services:
-  app-ctl:
+  app:
     build:
-      context: ./app-ctl
+      context: ./app
       dockerfile: Dockerfile
     ports:
-      - "50001:8080"
+      - "8080:8080"
     command: ./app
     depends_on:
       - redis
     restart: always
     env_file:
-      - endpoints.env
-
-  app-redirect:
-    build:
-      context: ./app-redirect
-      dockerfile: Dockerfile
-    ports:
-      - "50002:8080"
-    command: ./app
-    depends_on:
-      - redis
-    restart: always
-    env_file:
-      - endpoints.env
+      - config.env
 
   redis:
     image: redis:8.0

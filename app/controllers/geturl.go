@@ -4,7 +4,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/Outtech105k/ShortUrlServer/app-redirect/utils"
+	"github.com/Outtech105k/ShortUrlServer/app/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis"
 )

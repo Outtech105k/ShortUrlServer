@@ -11,8 +11,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Outtech105k/ShortUrlServer/app-ctl/models"
-	"github.com/Outtech105k/ShortUrlServer/app-ctl/utils"
+	"github.com/Outtech105k/ShortUrlServer/app/models"
+	"github.com/Outtech105k/ShortUrlServer/app/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 )
@@ -160,7 +160,7 @@ func SetUrlHandler(appCtx *utils.AppContext) gin.HandlerFunc {
 
 		c.JSON(http.StatusOK, models.APIResponce{
 			BaseURL:  r.BaseURL,
-			ShortURL: fmt.Sprintf("%s/%s", appCtx.Config.RedirectServerEndpoint, customId),
+			ShortURL: fmt.Sprintf("%s/%s", appCtx.Config.ServerEndpoint, customId),
 		})
 	}
 }
