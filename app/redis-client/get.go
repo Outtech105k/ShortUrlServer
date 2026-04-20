@@ -1,6 +1,9 @@
 package redisclient
 
-import "fmt"
+import (
+	"fmt"
+	"strconv"
+)
 
 func (r *RedisAdapter) GetBaseUrl(key string) (string, error) {
 	baseUrl, err := r.client.HGet(key, "base_url").Result()
@@ -12,16 +15,15 @@ func (r *RedisAdapter) GetBaseUrl(key string) (string, error) {
 }
 
 func (r *RedisAdapter) GetIsNeedCusionPage(key string) (bool, error) {
-	isNeedCusionPage, err := r.client.HGet(key, "cushion").Result()
+	redisVal, err := r.client.HGet(key, "cushion").Result()
 	if err != nil {
-		return false, err
+		return false, fmt.Errorf("get redis: %w", err)
 	}
 
-	if isNeedCusionPage == "1" {
-		return true, nil
-	} else if isNeedCusionPage == "0" {
-		return false, nil
+	isNeed, err := strconv.ParseBool(redisVal)
+	if err != nil {
+		return false, fmt.Errorf("parse got val: %w", err)
 	}
 
-	return false, fmt.Errorf("invalid value for cushion: %s", isNeedCusionPage)
+	return isNeed, nil
 }
