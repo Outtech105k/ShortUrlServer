@@ -29,6 +29,7 @@ func GetUrlHandler(appCtx *utils.AppContext) gin.HandlerFunc {
 				"error": "Failed to retrieve base URL",
 			})
 			log.Printf("Failed to retrieve base URL: %v", err)
+
 			return
 		}
 
@@ -39,6 +40,7 @@ func GetUrlHandler(appCtx *utils.AppContext) gin.HandlerFunc {
 				"error": "Internal server error",
 			})
 			log.Printf("Failed to check if cushion page is needed: %v", err)
+
 			return
 		}
 
@@ -47,6 +49,8 @@ func GetUrlHandler(appCtx *utils.AppContext) gin.HandlerFunc {
 			c.HTML(http.StatusOK, "cushion.html", gin.H{
 				"URL": baseUrl,
 			})
+
+			return
 		}
 
 		// クッションページなしでリダイレクト
