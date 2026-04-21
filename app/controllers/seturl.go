@@ -7,6 +7,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"net/url"
 	"reflect"
 	"strings"
 	"time"
@@ -128,9 +129,21 @@ func SetUrlHandler(appCtx *utils.AppContext) gin.HandlerFunc {
 				returnInternalServerError(c, "Custom ID generation failed after 10 attempts.")
 				return
 			}
-		} else {
-			customId = *r.CustomID
-			// カスタムIDが指定されている場合、Redisに存在するか確認
+		} else { // カスタムIDが指定されている場合
+			// `/` はGinの仕様上リダイレクト時に処理されないので禁止する
+			if strings.Contains(*r.CustomID, "/") {
+				c.JSON(http.StatusBadRequest, models.APIError{
+					Type:    "invalid_request",
+					Message: "custom_id contains `/`, it isn't acceptable.",
+				})
+
+				return
+			}
+
+			// 適切にエスケープする
+			customId = url.PathEscape(*r.CustomID)
+
+			// Redisに存在するか確認
 			customIdIsExists, err := appCtx.Redis.IsExists(customId)
 			if err != nil {
 				returnInternalServerError(c, fmt.Sprintf("Redis custom ID exists error: %v", err))

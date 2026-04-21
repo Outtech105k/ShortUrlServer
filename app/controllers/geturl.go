@@ -3,6 +3,7 @@ package controllers
 import (
 	"log"
 	"net/http"
+	"net/url"
 
 	"github.com/Outtech105k/ShortUrlServer/app/utils"
 	"github.com/gin-gonic/gin"
@@ -11,7 +12,7 @@ import (
 
 func GetUrlHandler(appCtx *utils.AppContext) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		shortUrl := c.Param("shortUrl")
+		shortUrl := url.PathEscape(c.Param("shortUrl"))
 
 		// Redisに問い合わせてURLを取得
 		baseUrl, err := appCtx.Redis.GetBaseUrl(shortUrl)
