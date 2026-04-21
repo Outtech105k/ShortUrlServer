@@ -97,7 +97,7 @@
             <div class="input-group mb-3">
                 <input type="text" id="short_url" class="form-control" readonly>
                 <button class="btn btn-outline-secondary" onclick="copyToClipboard()">Copy</button>
-                <a id="jump_link" class="btn btn-success" target="_blank">Jump</a>
+                <a id="jump_link" class="btn btn-primary" target="_blank">Jump</a>
             </div>
         </div>
     </div>
@@ -153,10 +153,10 @@
                         document.getElementById("result").style.display = "block";
                     } else {
                         // 特定のエラーメッセージに対するカスタム処理
-                        if (data.error === "custom_id already used.") {
+                        if (data.message === "custom_id already used.") {
                             alert("エラー: そのカスタムIDはすでに作成されています。ほかのIDを指定してください。");
                         } else {
-                            alert("エラー: " + data.error);
+                            alert("エラー: " + data.message);
                         }
                     }
                 } catch (err) {
@@ -167,7 +167,44 @@
 
         function copyToClipboard() {
             const urlField = document.getElementById("short_url");
-            navigator.clipboard.writeText(urlField.value)
+            const copyBtn = document.querySelector("#result button");
+            const originalText = copyBtn.innerText;
+
+            const textToCopy = urlField.value;
+            if (!textToCopy) return;
+
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(textToCopy).then(() => {
+                    showFeedback(copyBtn, originalText);
+                }).catch(err => {
+                    console.error("Clipboard write failed:", err);
+                    fallbackCopy(urlField, copyBtn, originalText);
+                });
+            } else {
+                fallbackCopy(urlField, copyBtn, originalText);
+            }
+        }
+
+        function fallbackCopy(element, btn, originalText) {
+            element.select();
+            try {
+                document.execCommand("copy");
+                showFeedback(btn, originalText);
+            } catch (err) {
+                console.error("Fallback copy failed:", err);
+                alert("コピーに失敗しました。手動でコピーしてください。");
+            }
+            // 選択を解除
+            window.getSelection().removeAllRanges();
+        }
+
+        function showFeedback(btn, originalText) {
+            btn.innerText = "Copied!";
+            btn.classList.replace("btn-outline-secondary", "btn-success");
+            setTimeout(() => {
+                btn.innerText = originalText;
+                btn.classList.replace("btn-success", "btn-outline-secondary");
+            }, 2000);
         }
     </script>
 </body>
