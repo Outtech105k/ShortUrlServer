@@ -18,6 +18,14 @@ import (
 	"github.com/go-playground/validator/v10"
 )
 
+type NotAcceptableIdError struct {
+	Message string
+}
+
+func (naie *NotAcceptableIdError) Error() string {
+	return naie.Message
+}
+
 func SetUrlHandler(appCtx *utils.AppContext) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var r models.SetUrlRequest
@@ -114,6 +122,11 @@ func SetUrlHandler(appCtx *utils.AppContext) gin.HandlerFunc {
 					return
 				}
 
+				// 受理可能なカスタムIDか
+				if err := checkAcceptableUrlId(customId); err != nil {
+					continue
+				}
+
 				// 生成されたカスタムIDがRedisに存在するか確認
 				customIdIsExists, err = appCtx.Redis.IsExists(customId)
 				if err != nil {
@@ -130,11 +143,11 @@ func SetUrlHandler(appCtx *utils.AppContext) gin.HandlerFunc {
 				return
 			}
 		} else { // カスタムIDが指定されている場合
-			// `/` はGinの仕様上リダイレクト時に処理されないので禁止する
-			if strings.Contains(*r.CustomID, "/") {
+			// 受理可能なカスタムIDか
+			if err := checkAcceptableUrlId(*r.CustomID); err != nil {
 				c.JSON(http.StatusBadRequest, models.APIError{
 					Type:    "invalid_request",
-					Message: "custom_id contains `/`, it isn't acceptable.",
+					Message: fmt.Sprintf("custom_id: %s", err.Error()),
 				})
 
 				return
@@ -183,6 +196,17 @@ func setUrlHandlerCustomValidate(r *models.SetUrlRequest) *models.APIError {
 		return &models.APIError{
 			Type:    "parameter_conflict",
 			Message: "custom_id cannot be used together with use_uppercase, use_lowercase, use_numbers, or id_length",
+		}
+	}
+
+	return nil
+}
+
+func checkAcceptableUrlId(s string) error {
+	// `/` はGinの仕様上リダイレクト時に処理されないので禁止する
+	if strings.Contains(s, "/") {
+		return &NotAcceptableIdError{
+			Message: "contains `/`, it isn't acceptable.",
 		}
 	}
 
