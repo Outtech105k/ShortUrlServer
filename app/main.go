@@ -24,7 +24,7 @@ func run() error {
 	}
 
 	// Connct Redis
-	redisAdapter, err := redisclient.NewRedisAdapter()
+	redisAdapter, err := redisclient.NewRedisAdapter(cfg.RedisAddr)
 	if err != nil {
 		return fmt.Errorf("connectRedis: %w", err)
 	}

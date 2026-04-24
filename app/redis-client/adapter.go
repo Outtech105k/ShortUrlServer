@@ -7,12 +7,12 @@ import (
 )
 
 type RedisAdapter struct {
-	client *redis.Client
+	Client *redis.Client
 }
 
-func NewRedisAdapter() (*RedisAdapter, error) {
+func NewRedisAdapter(addr string) (*RedisAdapter, error) {
 	client := redis.NewClient(&redis.Options{
-		Addr:     "redis:6379",
+		Addr:     addr,
 		Password: "",
 		DB:       0,
 	})
@@ -21,23 +21,23 @@ func NewRedisAdapter() (*RedisAdapter, error) {
 		return nil, fmt.Errorf("connectRedis: %w", err)
 	}
 
-	return &RedisAdapter{client: client}, nil
+	return &RedisAdapter{Client: client}, nil
 }
 
 func (r *RedisAdapter) Set(key string, value string) error {
-	return r.client.Set(key, value, 0).Err()
+	return r.Client.Set(key, value, 0).Err()
 }
 
 func (r *RedisAdapter) Get(key string) (string, error) {
-	return r.client.Get(key).Result()
+	return r.Client.Get(key).Result()
 }
 
 func (r *RedisAdapter) Close() error {
-	return r.client.Close()
+	return r.Client.Close()
 }
 
 func (r *RedisAdapter) IsExists(key string) (bool, error) {
-	exists, err := r.client.Exists(key).Result()
+	exists, err := r.Client.Exists(key).Result()
 	if err != nil {
 		return false, err
 	}
