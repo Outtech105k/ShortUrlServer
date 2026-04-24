@@ -7,7 +7,7 @@ import (
 
 func (r *RedisAdapter) SetURLRecord(id string, baseUrl string, isSandCushion bool, expireDelta *time.Duration) error {
 	// RedisにURLレコードを保存
-	if err := r.client.HMSet(id, map[string]interface{}{
+	if err := r.Client.HMSet(id, map[string]interface{}{
 		"base_url": baseUrl,
 		"cushion":  isSandCushion,
 	}).Err(); err != nil {
@@ -16,7 +16,7 @@ func (r *RedisAdapter) SetURLRecord(id string, baseUrl string, isSandCushion boo
 
 	// 有効期限が指定されている場合、設定
 	if expireDelta != nil {
-		if err := r.client.Expire(id, *expireDelta).Err(); err != nil {
+		if err := r.Client.Expire(id, *expireDelta).Err(); err != nil {
 			return fmt.Errorf("setExpire: %w", err)
 		}
 	}
