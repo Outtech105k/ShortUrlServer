@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/Outtech105k/ShortUrlServer/app/controllers"
+	"github.com/Outtech105k/ShortUrlServer/app/testutils"
 	"github.com/Outtech105k/ShortUrlServer/app/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis"
@@ -19,14 +20,14 @@ func TestGetUrlHandler_TableDriven(t *testing.T) {
 	tests := []struct {
 		name           string
 		shortUrl       string
-		setupMock      func(m *MockRedisClient)
+		setupMock      func(m *testutils.MockRedisClient)
 		expectedStatus int
 		verifyResponse func(t *testing.T, w *http.Response, body string)
 	}{
 		{
 			name:     "Success - Redirect",
 			shortUrl: "valid-id",
-			setupMock: func(m *MockRedisClient) {
+			setupMock: func(m *testutils.MockRedisClient) {
 				m.On("GetBaseUrl", "valid-id").Return("https://example.com", nil).Once()
 				m.On("GetIsNeedCusionPage", "valid-id").Return(false, nil).Once()
 			},
@@ -38,7 +39,7 @@ func TestGetUrlHandler_TableDriven(t *testing.T) {
 		{
 			name:     "Success - Show Cushion",
 			shortUrl: "cushion-id",
-			setupMock: func(m *MockRedisClient) {
+			setupMock: func(m *testutils.MockRedisClient) {
 				m.On("GetBaseUrl", "cushion-id").Return("https://example.com", nil).Once()
 				m.On("GetIsNeedCusionPage", "cushion-id").Return(true, nil).Once()
 			},
@@ -50,7 +51,7 @@ func TestGetUrlHandler_TableDriven(t *testing.T) {
 		{
 			name:     "Error - Not Found",
 			shortUrl: "missing-id",
-			setupMock: func(m *MockRedisClient) {
+			setupMock: func(m *testutils.MockRedisClient) {
 				m.On("GetBaseUrl", "missing-id").Return("", redis.Nil).Once()
 			},
 			expectedStatus: http.StatusNotFound,
@@ -58,7 +59,7 @@ func TestGetUrlHandler_TableDriven(t *testing.T) {
 		{
 			name:     "Error - Redis GetBaseUrl failure",
 			shortUrl: "error-id",
-			setupMock: func(m *MockRedisClient) {
+			setupMock: func(m *testutils.MockRedisClient) {
 				m.On("GetBaseUrl", "error-id").Return("", errors.New("redis error")).Once()
 			},
 			expectedStatus: http.StatusInternalServerError,
@@ -66,7 +67,7 @@ func TestGetUrlHandler_TableDriven(t *testing.T) {
 		{
 			name:     "Error - Redis GetIsNeedCusionPage failure",
 			shortUrl: "error-cushion-id",
-			setupMock: func(m *MockRedisClient) {
+			setupMock: func(m *testutils.MockRedisClient) {
 				m.On("GetBaseUrl", "error-cushion-id").Return("https://example.com", nil).Once()
 				m.On("GetIsNeedCusionPage", "error-cushion-id").Return(false, errors.New("redis error")).Once()
 			},
@@ -76,7 +77,7 @@ func TestGetUrlHandler_TableDriven(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mockRedis := new(MockRedisClient)
+			mockRedis := new(testutils.MockRedisClient)
 			tt.setupMock(mockRedis)
 
 			appCtx := &utils.AppContext{

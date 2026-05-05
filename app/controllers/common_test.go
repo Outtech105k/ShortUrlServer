@@ -7,45 +7,13 @@ import (
 	"net/http/httptest"
 	"os"
 	"testing"
-	"time"
 
 	redisclient "github.com/Outtech105k/ShortUrlServer/app/redis-client"
 	"github.com/Outtech105k/ShortUrlServer/app/routes"
 	"github.com/Outtech105k/ShortUrlServer/app/utils"
 	"github.com/alicebob/miniredis/v2"
 	"github.com/gin-gonic/gin"
-	"github.com/stretchr/testify/mock"
 )
-
-// MockRedisClient の定義をここに追加
-type MockRedisClient struct {
-	mock.Mock
-}
-
-func (m *MockRedisClient) SetURLRecord(id string, baseUrl string, isSandCushion bool, expireDelta *time.Duration) error {
-	args := m.Called(id, baseUrl, isSandCushion, expireDelta)
-	return args.Error(0)
-}
-
-func (m *MockRedisClient) GetBaseUrl(key string) (string, error) {
-	args := m.Called(key)
-	return args.String(0), args.Error(1)
-}
-
-func (m *MockRedisClient) GetIsNeedCusionPage(key string) (bool, error) {
-	args := m.Called(key)
-	return args.Bool(0), args.Error(1)
-}
-
-func (m *MockRedisClient) IsExists(key string) (bool, error) {
-	args := m.Called(key)
-	return args.Bool(0), args.Error(1)
-}
-
-func (m *MockRedisClient) Close() error {
-	args := m.Called()
-	return args.Error(0)
-}
 
 // テスト用の共通環境を構築
 // 戻り値: コンテキスト, miniredisインスタンス, ルーター, クリーンアップ関数
