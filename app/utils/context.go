@@ -4,5 +4,5 @@ import redisclient "github.com/Outtech105k/ShortUrlServer/app/redis-client"
 
 type AppContext struct {
 	Config Config
-	Redis  redisclient.RedisAdapter
+	Redis  redisclient.RedisClient
 }

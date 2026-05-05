@@ -33,7 +33,7 @@ func run() error {
 	// Setup AppContext
 	appCtx := &utils.AppContext{
 		Config: cfg,
-		Redis:  *redisAdapter,
+		Redis:  redisAdapter,
 	}
 
 	// Setup Gin Router
