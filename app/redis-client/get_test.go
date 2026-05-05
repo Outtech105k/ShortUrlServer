@@ -7,40 +7,58 @@ import (
 )
 
 func TestGetBaseUrl(t *testing.T) {
-	key := "id1"
-	baseUrl := "https://example.com/target"
 	mr, adapter, cleanup := setupTestEnvironment(t)
+	defer cleanup()
 
-	mr.HSet(
-		key,
-		"base_url",
-		baseUrl,
-		"cushion",
-		"false",
-	)
+	t.Run("Success", func(t *testing.T) {
+		key := "id1"
+		baseUrl := "https://example.com/target"
+		mr.HSet(key, "base_url", baseUrl)
 
-	result, err := adapter.GetBaseUrl(key)
-	assert.NoError(t, err)
-	assert.Equal(t, baseUrl, result)
+		result, err := adapter.GetBaseUrl(key)
+		assert.NoError(t, err)
+		assert.Equal(t, baseUrl, result)
+	})
 
-	cleanup()
+	t.Run("Not Found", func(t *testing.T) {
+		_, err := adapter.GetBaseUrl("non-existent")
+		assert.Error(t, err)
+	})
 }
 
 func TestGetIsNeedCusionPage(t *testing.T) {
-	key := "id2"
-	baseUrl := "https://example.com/target"
 	mr, adapter, cleanup := setupTestEnvironment(t)
+	defer cleanup()
 
-	mr.HSet(
-		key,
-		"base_url",
-		baseUrl,
-		"cushion",
-		"true",
-	)
+	t.Run("Success - True", func(t *testing.T) {
+		key := "id2"
+		mr.HSet(key, "cushion", "true")
 
-	result, err := adapter.GetIsNeedCusionPage(key)
-	assert.NoError(t, err)
-	assert.Equal(t, true, result)
-	cleanup()
+		result, err := adapter.GetIsNeedCusionPage(key)
+		assert.NoError(t, err)
+		assert.Equal(t, true, result)
+	})
+
+	t.Run("Success - False", func(t *testing.T) {
+		key := "id3"
+		mr.HSet(key, "cushion", "false")
+
+		result, err := adapter.GetIsNeedCusionPage(key)
+		assert.NoError(t, err)
+		assert.Equal(t, false, result)
+	})
+
+	t.Run("Error - Parse Failure", func(t *testing.T) {
+		key := "id4"
+		mr.HSet(key, "cushion", "invalid-bool")
+
+		_, err := adapter.GetIsNeedCusionPage(key)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "parse got val")
+	})
+
+	t.Run("Error - Redis Error (Key Missing)", func(t *testing.T) {
+		_, err := adapter.GetIsNeedCusionPage("non-existent")
+		assert.Error(t, err)
+	})
 }
