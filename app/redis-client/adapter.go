@@ -2,9 +2,18 @@ package redisclient
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/go-redis/redis"
 )
+
+type RedisClient interface {
+	SetURLRecord(id string, baseUrl string, isSandCushion bool, expireDelta *time.Duration) error
+	GetBaseUrl(key string) (string, error)
+	GetIsNeedCusionPage(key string) (bool, error)
+	IsExists(key string) (bool, error)
+	Close() error
+}
 
 type RedisAdapter struct {
 	Client *redis.Client

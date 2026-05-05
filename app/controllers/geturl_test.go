@@ -1,10 +1,107 @@
 package controllers_test
 
 import (
+	"errors"
 	"net/http"
 	"strings"
 	"testing"
+
+	"github.com/Outtech105k/ShortUrlServer/app/controllers"
+	"github.com/Outtech105k/ShortUrlServer/app/utils"
+	"github.com/gin-gonic/gin"
+	"github.com/go-redis/redis"
+	"github.com/stretchr/testify/assert"
 )
+
+func TestGetUrlHandler_TableDriven(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	tests := []struct {
+		name           string
+		shortUrl       string
+		setupMock      func(m *MockRedisClient)
+		expectedStatus int
+		verifyResponse func(t *testing.T, w *http.Response, body string)
+	}{
+		{
+			name:     "Success - Redirect",
+			shortUrl: "valid-id",
+			setupMock: func(m *MockRedisClient) {
+				m.On("GetBaseUrl", "valid-id").Return("https://example.com", nil).Once()
+				m.On("GetIsNeedCusionPage", "valid-id").Return(false, nil).Once()
+			},
+			expectedStatus: http.StatusFound,
+			verifyResponse: func(t *testing.T, w *http.Response, body string) {
+				assert.Equal(t, "https://example.com", w.Header.Get("Location"))
+			},
+		},
+		{
+			name:     "Success - Show Cushion",
+			shortUrl: "cushion-id",
+			setupMock: func(m *MockRedisClient) {
+				m.On("GetBaseUrl", "cushion-id").Return("https://example.com", nil).Once()
+				m.On("GetIsNeedCusionPage", "cushion-id").Return(true, nil).Once()
+			},
+			expectedStatus: http.StatusOK,
+			verifyResponse: func(t *testing.T, w *http.Response, body string) {
+				assert.Contains(t, body, "https://example.com")
+			},
+		},
+		{
+			name:     "Error - Not Found",
+			shortUrl: "missing-id",
+			setupMock: func(m *MockRedisClient) {
+				m.On("GetBaseUrl", "missing-id").Return("", redis.Nil).Once()
+			},
+			expectedStatus: http.StatusNotFound,
+		},
+		{
+			name:     "Error - Redis GetBaseUrl failure",
+			shortUrl: "error-id",
+			setupMock: func(m *MockRedisClient) {
+				m.On("GetBaseUrl", "error-id").Return("", errors.New("redis error")).Once()
+			},
+			expectedStatus: http.StatusInternalServerError,
+		},
+		{
+			name:     "Error - Redis GetIsNeedCusionPage failure",
+			shortUrl: "error-cushion-id",
+			setupMock: func(m *MockRedisClient) {
+				m.On("GetBaseUrl", "error-cushion-id").Return("https://example.com", nil).Once()
+				m.On("GetIsNeedCusionPage", "error-cushion-id").Return(false, errors.New("redis error")).Once()
+			},
+			expectedStatus: http.StatusInternalServerError,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockRedis := new(MockRedisClient)
+			tt.setupMock(mockRedis)
+
+			appCtx := &utils.AppContext{
+				Config: utils.Config{
+					ServerEndpoint: "https://srv.test",
+				},
+				Redis: mockRedis,
+			}
+
+			// Gin のルーターにテンプレートをロードする必要がある（クッションページ用）
+			router := gin.New()
+			// テスト実行時のカレントディレクトリが app/controllers であることを想定
+			router.LoadHTMLGlob("../templates/*.html")
+			router.GET("/:shortUrl", controllers.GetUrlHandler(appCtx))
+
+			w := performRequest(router, "GET", "/"+tt.shortUrl, nil)
+
+			assert.Equal(t, tt.expectedStatus, w.Code)
+			if tt.verifyResponse != nil {
+				tt.verifyResponse(t, w.Result(), w.Body.String())
+			}
+			mockRedis.AssertExpectations(t)
+		})
+	}
+}
 
 func TestGetUrlHandler_Integration(t *testing.T) {
 	_, mr, router, cleanup := setupTestEnvironment(t)
