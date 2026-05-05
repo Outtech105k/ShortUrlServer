@@ -158,8 +158,8 @@ func TestSetUrlHandler_TableDriven(t *testing.T) {
 			expectedStatus: http.StatusInternalServerError,
 		},
 		{
-			name: "Error - Malformed JSON",
-			requestBody: "invalid-json",
+			name:           "Error - Malformed JSON",
+			requestBody:    "invalid-json",
 			setupMock:      func(m *MockRedisClient) {},
 			expectedStatus: http.StatusBadRequest,
 			verifyResponse: func(t *testing.T, body []byte) {
@@ -169,7 +169,7 @@ func TestSetUrlHandler_TableDriven(t *testing.T) {
 			},
 		},
 		{
-			name: "Error - Empty Body",
+			name:           "Error - Empty Body",
 			requestBody:    nil,
 			setupMock:      func(m *MockRedisClient) {},
 			expectedStatus: http.StatusBadRequest,
