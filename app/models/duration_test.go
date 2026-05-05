@@ -33,6 +33,9 @@ func TestUnmarshalJSON(t *testing.T) {
 		{"boolean value", `true`, 0, true},
 		{"object value", `{"val":"10s"}`, 0, true},
 		{"null", `null`, 0, true},
+
+		// 異常系: 巨大な数値による Atoi 失敗
+		{"huge value", `"99999999999999999999999999s"`, 0, true},
 	}
 
 	for _, tt := range tests {
